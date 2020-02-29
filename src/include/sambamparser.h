@@ -22,6 +22,8 @@ class MatchOutputParser {
         unsigned long unique_queries;
         unsigned long num_mapped;
         unsigned long num_unmapped;
+        unsigned long low_quality;
+        unsigned long low_aln_prop;
         unsigned long num_multireads;
         unsigned long secondary_alns;
         unsigned long num_singletons;

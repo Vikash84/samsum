@@ -24,8 +24,11 @@ vector<std::string> format_matches_for_service(vector<MATCH*> &all_reads, char* 
             sprintf(buf, "%s\t%d\t%s\t%d\t%f", (*it)->query.c_str(), (*it)->start, (*it)->cigar.c_str(), (*it)->parity, (*it)->w);
         }
         query_info.push_back(buf);
-        delete *it;
     }
+     while ( !all_reads.empty()) {
+        delete all_reads.back();
+        all_reads.pop_back();
+     }
 
     return query_info;
 }
@@ -40,17 +43,25 @@ void remove_low_quality_matches(vector<MATCH*> &mapped_reads, unsigned int min_m
       * A new filtered_matches vector is created and all MATCH instances that pass the min_map_qual are appended to it.
       * Their weights are added to the unmapped_weight_sum float since these are no longer returned as MATCHes
     */
+    int pre = mapped_reads.size();
     vector<MATCH*> filtered_matches;
-    filtered_matches.reserve(mapped_reads.size());
-    for ( vector<MATCH*>::iterator it = mapped_reads.begin(); it != mapped_reads.end(); it++)  {
+    vector<MATCH*>::iterator it = mapped_reads.begin();
+    while (it != mapped_reads.end()) {
         if ((*it)->mq < min_map_qual) {
             unmapped_weight_sum += (*it)->w;
-            delete *it;
+            it = mapped_reads.erase(it);
+            filtered_matches.push_back(*it);
         }
         else
-            filtered_matches.push_back(*it);
+            it++;
     }
-    mapped_reads.clear();
-    mapped_reads = filtered_matches;
-    filtered_matches.clear();
+    mapped_reads.shrink_to_fit();
+
+//    cout << pre << " " << mapped_reads.size() << endl;
+//    while ( !filtered_matches.empty()) {
+//        delete filtered_matches.back();
+//        filtered_matches.pop_back();
+//    }
+
+    return;
 }

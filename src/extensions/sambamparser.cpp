@@ -57,6 +57,8 @@ SamFileParser::SamFileParser(const std::string &filename, const std::string &for
      this->unique_queries = 0;
      this->num_mapped = 0;
      this->num_unmapped = 0;
+     this->low_quality = 0;
+     this->low_aln_prop = 0;
      this->num_fwd = 0;
      this->num_rev = 0;
      this->num_unpaired = 0;
@@ -216,8 +218,10 @@ int SamFileParser::consume_sam(vector<MATCH*> &all_reads,
             reads_dict[match->query] = p;
         }
 
-        if (match->multi && !multireads)  // Drop secondary and supplementary alignments
+        if (match->multi && !multireads) { // Drop secondary and supplementary alignments
+            delete match;
             continue;
+        }
 
         if (!match->parity) {
             reads_dict[match->query].first = true;  // This is a forward read
@@ -236,6 +240,7 @@ int SamFileParser::consume_sam(vector<MATCH*> &all_reads,
                 unmapped_weight_sum += 0.5;
             else
                 unmapped_weight_sum++;
+            delete match;
             continue;
         }
 

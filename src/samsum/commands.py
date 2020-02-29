@@ -102,7 +102,8 @@ def stats(sys_args):
     refseq_lengths.clear()
 
     # Parse the alignments and return the strings of reads mapped to each reference sequence
-    mapped_dict = ss_fp.sam_parser_ext(stats_ss.aln_file, args.multireads, args.map_qual)
+    mapped_dict = ss_fp.sam_parser_ext(stats_ss.aln_file,
+                                       multireads=args.multireads, aln_percent=args.min_aln, min_mq=args.map_qual)
 
     logging.debug(stats_ss.get_info())
     num_unmapped, mapped_weight_sum = ss_aln_utils.load_reference_coverage(refseq_dict=references,
