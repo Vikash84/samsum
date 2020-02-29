@@ -107,10 +107,10 @@ static PyObject *get_mapped_reads(PyObject *self, PyObject *args) {
     }
 
     PyObject *mapping_info_py = PyList_New(0);
-    std::cout << "Parsing alignment file " << aln_file << std::endl;
+    std::cout << "Parsing alignment file " << aln_file << std::endl << std::flush;
 
     bool verbose = true;
-    vector<MATCH> mapped_reads;
+    vector<MATCH*> mapped_reads;
     float unmapped_weight_sum;
     mapped_reads.reserve(80000000);
     map<std::string, struct QUADRUPLE<bool, bool, unsigned int, unsigned int> > reads_dict;
@@ -125,21 +125,23 @@ static PyObject *get_mapped_reads(PyObject *self, PyObject *args) {
     long num_secondary_hits = identify_multireads(reads_dict, multireads,
                                                   sam_file.num_multireads, sam_file.num_singletons);
 
+    cout << "Multireads identified" << endl;
     // Redistribute read weights using multiple alignment information in reads_dict
     assign_read_weights(mapped_reads, reads_dict);
+    cout << "Read weights assigned" << endl;
     remove_low_quality_matches(mapped_reads, min_map_qual, unmapped_weight_sum);
-
+    cout << "Bad matches removed" << endl;
     // Set the SamFileParser values
     sam_file.unique_queries = reads_dict.size();
     sam_file.secondary_alns = num_secondary_hits;
     sam_file.num_distinct_reads_mapped = sam_file.num_mapped - num_secondary_hits;
 
     // Add a match object that stores the number of unmapped reads
-    MATCH unmapped;
-    unmapped.w = unmapped_weight_sum;
-    unmapped.query = "NA";
-    unmapped.subject = "UNMAPPED";
-    unmapped.parity = 0;
+    MATCH * unmapped;
+    unmapped->w = unmapped_weight_sum;
+    unmapped->query = "NA";
+    unmapped->subject = "UNMAPPED";
+    unmapped->parity = 0;
     mapped_reads.push_back(unmapped);
 
     // Print the various SAM alignment stats
@@ -182,7 +184,7 @@ static PyObject *get_alignment_strings(PyObject *self, PyObject *args) {
         return NULL;
     }
 
-    PyObject *mapping_info_py;
+    PyObject *mapping_info_py = PyList_New(0);
     std::cout << "Parsing alignment file " << aln_file << std::endl;
     return mapping_info_py;
 }

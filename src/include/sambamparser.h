@@ -48,7 +48,7 @@ class SamFileParser: virtual public MatchOutputParser {
         std::string unmapped_pattern;
         /* Class Functions */
         SamFileParser(const std::string &filename, const std::string &format);
-        int consume_sam(vector<MATCH> &all_reads,
+        int consume_sam(vector<MATCH*> &all_reads,
                         map<std::string, struct QUADRUPLE<bool, bool, unsigned int, unsigned int> > &reads_dict,
                         float &unmapped_weight_sum,
                         bool multireads,
@@ -63,7 +63,7 @@ long identify_multireads(map<std::string, struct QUADRUPLE<bool, bool, unsigned 
 
 float calculate_weight(int parity, struct QUADRUPLE<bool, bool, unsigned int, unsigned int> &pair);
 
-void assign_read_weights(vector<MATCH> &all_reads,
+void assign_read_weights(vector<MATCH*> &all_reads,
                          map<std::string, struct QUADRUPLE<bool, bool, unsigned int, unsigned int> > &reads_dict);
 
 #endif //_MATHOUTPUTPARSER

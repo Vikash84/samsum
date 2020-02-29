@@ -158,7 +158,7 @@ bool SamFileParser::nextline(MATCH &match) {
     return false;
 }
 
-int SamFileParser::consume_sam(vector<MATCH> &all_reads,
+int SamFileParser::consume_sam(vector<MATCH*> &all_reads,
                                 map<std::string, struct QUADRUPLE<bool, bool, unsigned int, unsigned int> > &reads_dict,
                                 float &unmapped_weight_sum,
                                 bool multireads,
@@ -183,7 +183,7 @@ int SamFileParser::consume_sam(vector<MATCH> &all_reads,
      }
 
     if ( show_status )
-        std::cout << "Number of SAM alignment lines processed: " << std::endl;
+        std::cout << "Number of SAM alignment lines processed: " << std::endl << std::flush;
 
     int i;
     struct QUADRUPLE <bool, bool, unsigned int, unsigned int> p;
@@ -191,6 +191,8 @@ int SamFileParser::consume_sam(vector<MATCH> &all_reads,
         if (show_status && i % 10000 == 0)
             std::cout << "\n\033[F\033[J" << i;
 
+        MATCH * matchptr = new MATCH;
+        matchptr = &match;
         if (!this->nextline(match))
             break;
         this->num_alignments++;
@@ -240,8 +242,9 @@ int SamFileParser::consume_sam(vector<MATCH> &all_reads,
         }
 
         // store it to process later by looking up the dictionary
+        cout << matchptr->query << endl;
         try {
-            all_reads.push_back(match);
+            all_reads.push_back(matchptr);
         }
         catch (...) {
             cout << "Failing " << match.query << "   " << all_reads.size() << endl;
@@ -306,7 +309,7 @@ float calculate_weight(int parity, struct QUADRUPLE<bool, bool, unsigned int, un
 }
 
 
-void assign_read_weights(vector<MATCH> &all_reads,
+void assign_read_weights(vector<MATCH*> &all_reads,
                          map<std::string, struct QUADRUPLE<bool, bool, unsigned int, unsigned int> > &reads_dict) {
     /* Parameters:
       * all_reads: A complete list of MATCH instances, one for each mapped read
@@ -318,8 +321,10 @@ void assign_read_weights(vector<MATCH> &all_reads,
       the sum of forward and reverse (if applicable) equals one.
     */
     int n = 0;
-    for ( vector<MATCH>::iterator it = all_reads.begin(); it != all_reads.end(); it++)  {
-        it->w = calculate_weight(it->parity, reads_dict[it->query]);
+    cout << "Beginning to assign read weights" << endl;
+    for ( vector<MATCH*>::iterator it = all_reads.begin(); it != all_reads.end(); it++)  {
+        cout << it->subject << endl;
+        (*it)->w = calculate_weight((*it)->parity, reads_dict[(*it)->query]);
         n++;
     }
 
