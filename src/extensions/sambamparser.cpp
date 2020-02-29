@@ -175,7 +175,6 @@ int SamFileParser::consume_sam(vector<MATCH*> &all_reads,
       * The number of mapped, unmapped, forward, and reverse reads are counted.
       * These are counts are non-unique so double counts could arise from reads with multiple alignments
     */
-    MATCH match;
 
      if(!this->input.good()) {
          std::cerr << "ERROR: Unable to open '"<< filename <<"' for reading." << std::endl;
@@ -191,50 +190,49 @@ int SamFileParser::consume_sam(vector<MATCH*> &all_reads,
         if (show_status && i % 10000 == 0)
             std::cout << "\n\033[F\033[J" << i;
 
-        MATCH * matchptr = new MATCH;
-        matchptr = &match;
-        if (!this->nextline(match))
+        MATCH * match = new MATCH;
+        if (!this->nextline(*match))
             break;
         this->num_alignments++;
 
-        if (match.mapped)
+        if (match->mapped)
             this->num_mapped++;
         else
             this->num_unmapped++;
 
-        if (!match.paired)
+        if (!match->paired)
             this->num_unpaired++;
         else {
-            if (match.parity)
+            if (match->parity)
                 this->num_rev++;
             else this->num_fwd++;
         }
 
-        if (reads_dict.find(match.query) == reads_dict.end()) {
+        if (reads_dict.find(match->query) == reads_dict.end()) {
             p.first = false;
             p.second = false;
             p.third = 0;
             p.fourth = 0;
-            reads_dict[match.query] = p;
+            reads_dict[match->query] = p;
         }
 
-        if (match.multi && !multireads)  // Drop secondary and supplementary alignments
+        if (match->multi && !multireads)  // Drop secondary and supplementary alignments
             continue;
 
-        if (!match.parity) {
-            reads_dict[match.query].first = true;  // This is a forward read
-            if (match.mapped)
-                reads_dict[match.query].third++;
+        if (!match->parity) {
+            reads_dict[match->query].first = true;  // This is a forward read
+            if (match->mapped)
+                reads_dict[match->query].third++;
         }
         else {
-            reads_dict[match.query].second = true;  // This is a reverse read
-            if (match.mapped)
-                reads_dict[match.query].fourth++;
+            reads_dict[match->query].second = true;  // This is a reverse read
+            if (match->mapped)
+                reads_dict[match->query].fourth++;
         }
 
         // if it is not mapped then ignore it
-        if (!match.mapped) {
-            if (match.paired)
+        if (!match->mapped) {
+            if (match->paired)
                 unmapped_weight_sum += 0.5;
             else
                 unmapped_weight_sum++;
@@ -242,12 +240,11 @@ int SamFileParser::consume_sam(vector<MATCH*> &all_reads,
         }
 
         // store it to process later by looking up the dictionary
-        cout << matchptr->query << endl;
         try {
-            all_reads.push_back(matchptr);
+            all_reads.push_back(match);
         }
         catch (...) {
-            cout << "Failing " << match.query << "   " << all_reads.size() << endl;
+            cout << "Failing " << match->query << "   " << all_reads.size() << endl;
             return 1;
         }
     }
@@ -321,9 +318,7 @@ void assign_read_weights(vector<MATCH*> &all_reads,
       the sum of forward and reverse (if applicable) equals one.
     */
     int n = 0;
-    cout << "Beginning to assign read weights" << endl;
     for ( vector<MATCH*>::iterator it = all_reads.begin(); it != all_reads.end(); it++)  {
-        cout << it->subject << endl;
         (*it)->w = calculate_weight((*it)->parity, reads_dict[(*it)->query]);
         n++;
     }

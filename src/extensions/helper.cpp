@@ -24,7 +24,7 @@ vector<std::string> format_matches_for_service(vector<MATCH*> &all_reads, char* 
             sprintf(buf, "%s\t%d\t%s\t%d\t%f", (*it)->query.c_str(), (*it)->start, (*it)->cigar.c_str(), (*it)->parity, (*it)->w);
         }
         query_info.push_back(buf);
-//        delete &it;
+        delete *it;
     }
 
     return query_info;
@@ -43,10 +43,9 @@ void remove_low_quality_matches(vector<MATCH*> &mapped_reads, unsigned int min_m
     vector<MATCH*> filtered_matches;
     filtered_matches.reserve(mapped_reads.size());
     for ( vector<MATCH*>::iterator it = mapped_reads.begin(); it != mapped_reads.end(); it++)  {
-        cout << (*it)->query << endl;
         if ((*it)->mq < min_map_qual) {
             unmapped_weight_sum += (*it)->w;
-//            delete &it;
+            delete *it;
         }
         else
             filtered_matches.push_back(*it);
